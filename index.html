@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Captive Portal</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        #chat {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        #msgContainer {
+            border: 1px solid #ccc;
+            height: 300px;
+            overflow-y: scroll;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        #input {
+            display: flex;
+        }
+        #input input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+        #input button {
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="chat">
+        <div id="msgContainer"></div>
+        <div id="input">
+            <input type="text" id="msgInput" placeholder="Escreva...">
+            <button onclick="sendMessage()">Enviar</button>
+        </div>
+    </div>
+    <script>
+
+        function setChat (text){
+            const msgContainer = document.getElementById('msgContainer');
+            const p = document.createElement('p');
+            p.textContent = text;
+            msgContainer.appendChild(p);
+            msgContainer.scrollTop = msgContainer.scrollHeight;
+        }
+        const ws = new WebSocket('ws://10.0.0.1:8765');
+
+        ws.onopen = function() {
+            setChat('Coneção estabelecida com sucesso!')
+
+        };
+
+        ws.onmessage = function(event) {
+
+            setChat(event.data)
+
+        };
+
+        ws.onclose = function() {
+          
+              setChat('Conecção encerrada!')
+        };
+
+        function sendMessage() {
+            const input = document.getElementById('msgInput');
+            const message = input.value;
+            ws.send(message);
+            input.value = '';
+        }
+    </script>
+</body>
+</html>
