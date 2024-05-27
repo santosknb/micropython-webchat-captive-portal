@@ -141,7 +141,9 @@ class MyApp:
         udps.close()
 
     async def websocket_handler(self, reader, writer):
-        self.connected_clients.append(writer) # Adicionar cliente à lista de clientes conectados
+        addr = writer.get_extra_info('peername')
+        client = {'writer': writer, 'addr': addr} # Dicionário para armazenar o ip(addr) do cliente e o objeto de writer(socket)
+        self.connected_clients.append(client) # Adicionar cliente à lista de clientes conectados 
         try:
             # Realizar o handshake do WebSocket
             request_line = await reader.readline()
@@ -195,9 +197,9 @@ class MyApp:
                 # Ecoar a mensagem de volta
                 response = self.create_websocket_frame(message)
                  # Transmitir a mensagem para todos os clientes conectados
-                for client_writer in self.connected_clients:
+                for client in self.connected_clients:
                     try:
-                        await client_writer.awrite(response)
+                        await client['writer'].awrite(response)
                     except Exception as e:
                         print(f"Erro ao escrever para o cliente: {e}")
                 
@@ -205,7 +207,7 @@ class MyApp:
         except Exception as e:
             print("Erro no manipulador do WebSocket:", e)
         finally:
-            self.connected_clients.remove(writer)
+            self.connected_clients.remove(client)
             await writer.aclose()
 
     def generate_accept_key(self, key):
